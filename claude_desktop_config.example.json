@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "webex-calling": {
+      "command": "python",
+      "args": ["C:\\Users\\Administrator\\Desktop\\WebexMCP\\server.py"],
+      "env": {
+        "WEBEX_ACCESS_TOKEN": "YOUR_WEBEX_ACCESS_TOKEN_HERE"
+      }
+    }
+  }
+}

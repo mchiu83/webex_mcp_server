@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webex MCP Configuration</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 { font-size: 2em; margin-bottom: 10px; }
+        .header p { opacity: 0.9; }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .stat-number { font-size: 2.5em; font-weight: bold; color: #667eea; }
+        .stat-label { color: #666; margin-top: 5px; }
+        .controls {
+            padding: 20px 30px;
+            display: flex;
+            gap: 10px;
+            background: #f8f9fa;
+            border-top: 1px solid #e0e0e0;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover { background: #5568d3; transform: translateY(-2px); }
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+        .btn-secondary:hover { background: #d0d0d0; }
+        .search-box {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .search-box:focus { outline: none; border-color: #667eea; }
+        .features {
+            padding: 30px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .feature-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+        .feature-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .feature-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+        }
+        .toggle {
+            position: relative;
+            width: 50px;
+            height: 26px;
+            background: #ccc;
+            border-radius: 13px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .toggle.active { background: #667eea; }
+        .toggle::after {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: left 0.3s;
+        }
+        .toggle.active::after { left: 26px; }
+        .feature-name {
+            flex: 1;
+            font-weight: 600;
+            font-size: 1.1em;
+            color: #333;
+        }
+        .feature-count {
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.9em;
+        }
+        .feature-endpoints {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+            display: none;
+        }
+        .feature-card.expanded .feature-endpoints { display: block; }
+        .endpoint {
+            padding: 8px 0;
+            font-size: 0.9em;
+            color: #666;
+        }
+        .method {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.8em;
+            margin-right: 8px;
+        }
+        .method-get { background: #d4edda; color: #155724; }
+        .method-post { background: #cce5ff; color: #004085; }
+        .method-put { background: #fff3cd; color: #856404; }
+        .method-delete { background: #f8d7da; color: #721c24; }
+        .save-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            display: none;
+            animation: slideIn 0.3s;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Webex MCP Configuration</h1>
+            <p>Select which API features to enable for Claude Desktop</p>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalEndpoints">0</div>
+                <div class="stat-label">Total Endpoints</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="enabledEndpoints">0</div>
+                <div class="stat-label">Enabled Endpoints</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalFeatures">0</div>
+                <div class="stat-label">Total Features</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="enabledFeatures">0</div>
+                <div class="stat-label">Enabled Features</div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <input type="text" class="search-box" id="searchBox" placeholder="🔍 Search features...">
+            <button class="btn btn-secondary" onclick="selectAll()">Select All</button>
+            <button class="btn btn-secondary" onclick="deselectAll()">Deselect All</button>
+            <button class="btn btn-primary" onclick="saveConfig()">💾 Save Configuration</button>
+        </div>
+        
+        <div class="features" id="featuresContainer"></div>
+    </div>
+    
+    <div class="save-notification" id="notification">✓ Configuration saved! Restart Claude Desktop to apply.</div>
+    
+    <script>
+        let features = [];
+        let config = {};
+        
+        async function loadFeatures() {
+            const response = await fetch('/api/features');
+            features = await response.json();
+            features.forEach(f => config[f.name] = f.enabled);
+            renderFeatures();
+            updateStats();
+        }
+        
+        function renderFeatures(filter = '') {
+            const container = document.getElementById('featuresContainer');
+            const filtered = features.filter(f => 
+                f.name.toLowerCase().includes(filter.toLowerCase())
+            );
+            
+            container.innerHTML = filtered.map(feature => `
+                <div class="feature-card" id="feature-${feature.name.replace(/[^a-zA-Z0-9]/g, '_')}">
+                    <div class="feature-header" onclick="toggleExpand('${feature.name.replace(/[^a-zA-Z0-9]/g, '_')}')">
+                        <div class="toggle ${config[feature.name] ? 'active' : ''}" 
+                             onclick="event.stopPropagation(); toggleFeature('${feature.name}')"></div>
+                        <div class="feature-name">${feature.name}</div>
+                        <div class="feature-count">${feature.count} endpoints</div>
+                    </div>
+                    <div class="feature-endpoints">
+                        ${feature.endpoints.map(ep => `
+                            <div class="endpoint">
+                                <span class="method method-${ep.method.toLowerCase()}">${ep.method.toUpperCase()}</span>
+                                ${ep.title}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function toggleFeature(name) {
+            config[name] = !config[name];
+            renderFeatures(document.getElementById('searchBox').value);
+            updateStats();
+        }
+        
+        function toggleExpand(id) {
+            document.getElementById('feature-' + id).classList.toggle('expanded');
+        }
+        
+        function selectAll() {
+            features.forEach(f => config[f.name] = true);
+            renderFeatures(document.getElementById('searchBox').value);
+            updateStats();
+        }
+        
+        function deselectAll() {
+            features.forEach(f => config[f.name] = false);
+            renderFeatures(document.getElementById('searchBox').value);
+            updateStats();
+        }
+        
+        async function saveConfig() {
+            await fetch('/api/save', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(config)
+            });
+            
+            const notification = document.getElementById('notification');
+            notification.style.display = 'block';
+            setTimeout(() => notification.style.display = 'none', 3000);
+        }
+        
+        async function updateStats() {
+            const response = await fetch('/api/stats');
+            const stats = await response.json();
+            document.getElementById('totalEndpoints').textContent = stats.total;
+            document.getElementById('enabledEndpoints').textContent = stats.enabled;
+            document.getElementById('totalFeatures').textContent = stats.features_total;
+            document.getElementById('enabledFeatures').textContent = stats.features_enabled;
+        }
+        
+        document.getElementById('searchBox').addEventListener('input', (e) => {
+            renderFeatures(e.target.value);
+        });
+        
+        loadFeatures();
+    </script>
+</body>
+</html>
